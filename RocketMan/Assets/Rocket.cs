@@ -6,6 +6,8 @@ public class Rocket : MonoBehaviour
 {
     Rigidbody rocketBody;
     AudioSource rocketSound;
+    [SerializeField] float rcsThrust = 200f;
+    [SerializeField] float mainThrust = 200f;
     // Start is called before the first frame update
     void Start()
     {
@@ -16,13 +18,30 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ProcessInput();
+        Thrust();
+        Rotate();
     }
-    private void ProcessInput()
+
+    void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Friendly":
+                //do nothing
+                break;
+            case "Fuel":
+                //do something
+                break;
+            default:
+                //die
+                break;
+        }
+    }
+    private void Thrust()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rocketBody.AddRelativeForce(Vector3.up);
+            rocketBody.AddRelativeForce(Vector3.up * mainThrust);
             if (!rocketSound.isPlaying)
             {
                 rocketSound.Play();
@@ -32,12 +51,18 @@ public class Rocket : MonoBehaviour
         {
             rocketSound.Stop();
         }
+    }
+    private void Rotate()
+    {
+        rocketBody.freezeRotation = true;
+        float rotationSpeed = rcsThrust * Time.deltaTime;
         if (Input.GetKey(KeyCode.D))
         {
-            transform.Rotate(Vector3.left);
+            transform.Rotate(Vector3.left * rotationSpeed);
         }else if (Input.GetKey(KeyCode.A))
         {
-            transform.Rotate(Vector3.right);
+            transform.Rotate(Vector3.right * rotationSpeed);
         }
+        rocketBody.freezeRotation = false;
     }
 }
