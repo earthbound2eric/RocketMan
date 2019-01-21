@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class Rocket : MonoBehaviour
 {
@@ -8,6 +8,8 @@ public class Rocket : MonoBehaviour
     AudioSource rocketSound;
     [SerializeField] float rcsThrust = 200f;
     [SerializeField] float mainThrust = 200f;
+    enum State {Alive, Dying, Transcending};
+    State state = State.Alive;
     // Start is called before the first frame update
     void Start()
     {
@@ -26,14 +28,12 @@ public class Rocket : MonoBehaviour
     {
         switch (collision.gameObject.tag)
         {
-            case "Friendly":
-                //do nothing
-                break;
-            case "Fuel":
-                //do something
+            case "Finish":
+                state = State.Transcending;
+                Invoke("LoadNextScene", 1f); // paramterise time
                 break;
             default:
-                //die
+                SceneManager.LoadScene(0);
                 break;
         }
     }
@@ -51,6 +51,10 @@ public class Rocket : MonoBehaviour
         {
             rocketSound.Stop();
         }
+    }
+    private void LoadNextScene()
+    {
+        SceneManager.LoadScene(1);
     }
     private void Rotate()
     {
