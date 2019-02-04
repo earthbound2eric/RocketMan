@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
@@ -8,6 +9,9 @@ public class Rocket : MonoBehaviour
     AudioSource rocketSound;
     [SerializeField] float rcsThrust = 200f;
     [SerializeField] float mainThrust = 200f;
+    [SerializeField] AudioClip mainEngine;
+    [SerializeField] AudioClip death;
+    [SerializeField] AudioClip levelLoad;
     enum State {Alive, Dying, Transcending};
     State state = State.Alive;
     // Start is called before the first frame update
@@ -20,43 +24,70 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Thrust();
-        Rotate();
+        if (state == State.Alive)
+        {
+            // TODO: stop sound on death
+            RespondToThrustInput();
+            RespondToRotateInput();
+        }
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        switch (collision.gameObject.tag)
-        {
-            case "Finish":
-                state = State.Transcending;
-                Invoke("LoadNextScene", 1f); // paramterise time
-                break;
-            default:
-                SceneManager.LoadScene(0);
-                break;
-        }
+        if (state != State.Alive)
+        { return; } // dead
+            switch (collision.gameObject.tag)
+            {
+                case "Finish":
+                    state = State.Transcending;
+                    Invoke("LoadNextScene", 1f); // paramterise time
+                    rocketSound.PlayOneShot(levelLoad);
+                    break;
+                case "Friendly":
+                    //do nothing
+                    break;
+                default:
+                    rocketSound.Stop();
+                    state = State.Dying;  
+                    Invoke("dying", 1f);
+                    rocketSound.PlayOneShot(death);
+                    break;
+            }
+        
     }
-    private void Thrust()
+    private void RespondToThrustInput()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rocketBody.AddRelativeForce(Vector3.up * mainThrust);
-            if (!rocketSound.isPlaying)
-            {
-                rocketSound.Play();
-            }
+            ApplyThrust();
         }
         else
         {
             rocketSound.Stop();
         }
     }
+
+    private void ApplyThrust()
+    {
+        if (state == State.Alive)
+        {
+            rocketBody.AddRelativeForce(Vector3.up * mainThrust);
+            if (!rocketSound.isPlaying)
+            {
+                rocketSound.PlayOneShot(mainEngine);
+            }
+        }
+    }
+
+    private void dying()
+    {
+        SceneManager.LoadScene(0);
+    }
     private void LoadNextScene()
     {
         SceneManager.LoadScene(1);
     }
-    private void Rotate()
+    private void RespondToRotateInput()
     {
         rocketBody.freezeRotation = true;
         float rotationSpeed = rcsThrust * Time.deltaTime;
