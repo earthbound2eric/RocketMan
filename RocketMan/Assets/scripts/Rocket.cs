@@ -17,11 +17,13 @@ public class Rocket : MonoBehaviour
     [SerializeField] ParticleSystem levelLoadParticle;
     enum State {Alive, Dying, Transcending};
     State state = State.Alive;
+    bool stopColliding;
     // Start is called before the first frame update
     void Start()
     {
         rocketBody = GetComponent<Rigidbody>();
         rocketSound = GetComponent<AudioSource>();
+        stopColliding = false;
     }
 
     // Update is called once per frame
@@ -32,13 +34,23 @@ public class Rocket : MonoBehaviour
             // TODO: stop sound on death
             RespondToThrustInput();
             RespondToRotateInput();
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                SceneManager.LoadScene(1);
+            }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                stopColliding = !stopColliding;
+            }
         }
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (state != State.Alive)
-        { return; } // dead
+        if (!stopColliding)
+        {
+            if (state != State.Alive)
+            { return; } // dead
             switch (collision.gameObject.tag)
             {
                 case "Finish":
@@ -52,12 +64,14 @@ public class Rocket : MonoBehaviour
                     break;
                 default:
                     rocketSound.Stop();
-                    state = State.Dying;  
+                    state = State.Dying;
                     Invoke("dying", 1f);
                     rocketSound.PlayOneShot(death);
                     deathParticle.Play();
                     break;
+
             }
+        }
         
     }
     private void RespondToThrustInput()
