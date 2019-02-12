@@ -36,7 +36,7 @@ public class Rocket : MonoBehaviour
             RespondToRotateInput();
             if (Input.GetKeyDown(KeyCode.L))
             {
-                SceneManager.LoadScene(1);
+                LoadNextScene();
             }
             if (Input.GetKeyDown(KeyCode.C))
             {
@@ -106,7 +106,13 @@ public class Rocket : MonoBehaviour
     }
     private void LoadNextScene()
     {
-        SceneManager.LoadScene(1);
+        int currentScene = SceneManager.GetActiveScene().buildIndex;
+        int nextScene = currentScene + 1;
+        if (nextScene == SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(0);
+        }
+        SceneManager.LoadScene(nextScene);
     }
     private void RespondToRotateInput()
     {
